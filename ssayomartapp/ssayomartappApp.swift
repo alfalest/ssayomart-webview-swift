@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import WebKit
 
 @main
-struct ssayomartappApp: App {
+struct SsayoMartApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
