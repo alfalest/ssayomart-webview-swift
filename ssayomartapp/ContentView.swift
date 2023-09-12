@@ -6,30 +6,29 @@
 //
 
 import SwiftUI
-import WebKit 
+import WebKit
 
 struct ContentView: View {
     @State private var showWebView = false
     @State private var isRefreshing = false
-    private let urlString: String = "https://ssayomart.com/homepage-mobile"
+    private let urlString: String = "https://apps.ssayomart.com"
     
     var body: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 0) { // Menghilangkan spacing antar komponen
             if showWebView {
                 CustomWebView(url: URL(string: urlString)!, isRefreshing: $isRefreshing)
+                    .ignoresSafeArea() // Mengabaikan safe area agar penuh layar
             } else {
                 Image("logo")
                     .resizable()
                     .frame(width: 100, height: 100)
                     .onAppear {
-                       
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                             showWebView = true
                         }
                     }
             }
         }
-        .padding()
     }
 }
 
@@ -47,15 +46,11 @@ struct CustomWebView: UIViewControllerRepresentable {
     }
 }
 
-class CustomWebViewController: UIViewController, WKNavigationDelegate, UITextFieldDelegate, UITextViewDelegate, WKUIDelegate {
+class CustomWebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
     private var url: URL
     private var webView: WKWebView!
-    private var preloaderImageView: UIImageView!
     private var refreshControl: UIRefreshControl!
-    private var isInputActive = false
-    private var activeInputElementID: String?
     
-
     init(url: URL) {
         self.url = url
         super.init(nibName: nil, bundle: nil)
@@ -70,64 +65,26 @@ class CustomWebViewController: UIViewController, WKNavigationDelegate, UITextFie
 
         setupViews()
         loadWebView()
-        // Tambahkan observer untuk memantau halaman web
-        webView.addObserver(self, forKeyPath: "estimatedProgress", options: .new, context: nil)
     }
-    
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-            if keyPath == "loading", let newValue = change?[.newKey] as? Bool, !newValue {
-                // ...
-            } else if keyPath == "estimatedProgress" {
-                // Cek apakah ada input teks aktif pada WebView
-                webView.evaluateJavaScript("document.activeElement.tagName") { [weak self] result, _ in
-                    if let tagName = result as? String, tagName == "INPUT" || tagName == "TEXTAREA" {
-                        self?.isInputActive = true
-                        // Mendapatkan ID dari elemen input yang aktif
-                        self?.webView.evaluateJavaScript("document.activeElement.id") { id, _ in
-                            self?.activeInputElementID = id as? String
-                            self?.disableZoomAccordingToInputState()
-                        }
-                    } else {
-                        self?.isInputActive = false
-                        self?.activeInputElementID = nil
-                        self?.disableZoomAccordingToInputState()
-                    }
-                }
-            }
-        }
-    
-    private func disableZoomAccordingToInputState() {
-            if let activeID = activeInputElementID {
-                // Mengatur zooming berdasarkan elemen input aktif
-                let js = "document.getElementById('\(activeID)').blur();"
-                webView.evaluateJavaScript(js, completionHandler: nil)
-                
-                // Menonaktifkan zooming hanya jika elemen input aktif
-                webView.scrollView.maximumZoomScale = isInputActive ? 1.0 : 10.0
-                webView.scrollView.minimumZoomScale = 1.0
-                webView.scrollView.bouncesZoom = !isInputActive
-            } else {
-                // Menonaktifkan zooming berdasarkan flag isInputActive jika tidak ada elemen input aktif
-                webView.scrollView.maximumZoomScale = isInputActive ? 1.0 : 10.0
-                webView.scrollView.minimumZoomScale = 1.0
-                webView.scrollView.bouncesZoom = !isInputActive
-            }
-        }
     
     private func setupViews() {
         refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refreshWebView), for: .valueChanged)
         
-        // Inisialisasi WKUserScript untuk mematikan zooming
-        let source = "var meta = document.createElement('meta');" +
-                         "meta.name = 'viewport';" +
-                         "meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';" +
-                         "var head = document.getElementsByTagName('head')[0];" +
-                         "head.appendChild(meta);"
-        let script = WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        let userContentController = WKUserContentController()
-        userContentController.addUserScript(script)
         let conf = WKWebViewConfiguration()
+        let userContentController = WKUserContentController()
+        
+        // Inisialisasi WKUserScript untuk mematikan zooming
+        let source = """
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        var head = document.getElementsByTagName('head')[0];
+        head.appendChild(meta);
+        """
+        let script = WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        userContentController.addUserScript(script)
+        
         conf.userContentController = userContentController
         
         // Inisialisasi WKWebView dengan konfigurasi yang telah dibuat
@@ -135,26 +92,6 @@ class CustomWebViewController: UIViewController, WKNavigationDelegate, UITextFie
         webView.scrollView.addSubview(refreshControl)
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        webView.isHidden = true
-        
-        // Menambahkan observer untuk mengatur flag isInputActive
-        webView.addObserver(self, forKeyPath: "loading", options: .new, context: nil)
-                
-        // Menonaktifkan zooming
-        webView.scrollView.maximumZoomScale = 1.0
-        webView.scrollView.minimumZoomScale = 1.0
-        webView.scrollView.bouncesZoom = false
-                
-        // Menambahkan gesture recognizer untuk mencegah double tap
-        for subview in webView.scrollView.subviews {
-            if let subviewGestures = subview.gestureRecognizers {
-                for gesture in subviewGestures {
-                    if gesture is UITapGestureRecognizer {
-                        gesture.isEnabled = false
-                    }
-                }
-            }
-        }
         
         view.addSubview(webView)
         webView.translatesAutoresizingMaskIntoConstraints = false
@@ -174,9 +111,6 @@ class CustomWebViewController: UIViewController, WKNavigationDelegate, UITextFie
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        webView.isHidden = false
-        
         refreshControl.endRefreshing()
     }
-
 }
