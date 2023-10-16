@@ -1,10 +1,39 @@
 import SwiftUI
 import WebKit
 
+public class UserAgent {
+    public static let userAgent: String? = {
+        guard let info = Bundle.main.infoDictionary,
+            let appNameRaw = info["Ssayomart"] ??  info[kCFBundleIdentifierKey as String],
+            let appVersionRaw = info[kCFBundleVersionKey as String],
+            let appName = appNameRaw as? String,
+            let appVersion = appVersionRaw as? String
+        else { return nil }
+
+        #if canImport(UIKit)
+        let scale: String
+        if #available(iOS 4, *) {
+            scale = String(format: "%0.2f", UIScreen.main.scale)
+        } else {
+            scale = "1.0"
+        }
+
+        let model = UIDevice.current.model
+        let os = UIDevice.current.systemVersion
+        let ua = "\(appName)/\(appVersion) (\(model); iOS \(os); Scale/\(scale))"
+        #else
+        let ua = "\(appName)/\(appVersion)"
+        #endif
+
+        return ua
+    }()
+}
+
+
 struct ContentView: View {
     @State private var showWebView = false
     @State private var isRefreshing = false
-    private let urlString: String = "https://apps.ssayomart.com"
+    private let urlString: String = "http://localhost:8080"
 
     var body: some View {
         VStack(spacing: 2) {
@@ -43,7 +72,6 @@ class CustomWebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
     private var url: URL
     private var webView: WKWebView!
     private var refreshControl: UIRefreshControl!
-    private let urlString: String = "https://apps.ssayomart.com"
 
     init(url: URL) {
         self.url = url
@@ -88,9 +116,9 @@ class CustomWebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         var request = URLRequest(url: url)
         
         // Menambahkan header User-Agent
-        let userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/12.0.0 Mobile/15A5370a Safari/602.1"
-                
-        request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        let userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+                       
+        webView.customUserAgent = userAgent
 
         webView.load(request)
     }
