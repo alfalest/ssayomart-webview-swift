@@ -1,49 +1,18 @@
 import SwiftUI
 import WebKit
 
-public class UserAgent {
-    public static let userAgent: String? = {
-        guard let info = Bundle.main.infoDictionary,
-            let appNameRaw = info["Ssayomart"] ??  info[kCFBundleIdentifierKey as String],
-            let appVersionRaw = info[kCFBundleVersionKey as String],
-            let appName = appNameRaw as? String,
-            let appVersion = appVersionRaw as? String
-        else { return nil }
-
-        #if canImport(UIKit)
-        let scale: String
-        if #available(iOS 4, *) {
-            scale = String(format: "%0.2f", UIScreen.main.scale)
-        } else {
-            scale = "1.0"
-        }
-
-        let model = UIDevice.current.model
-        let os = UIDevice.current.systemVersion
-        let ua = "\(appName)/\(appVersion) (\(model); iOS \(os); Scale/\(scale))"
-        #else
-        let ua = "\(appName)/\(appVersion)"
-        #endif
-
-        return ua
-    }()
-}
-
-
 struct ContentView: View {
     @State private var showWebView = false
     @State private var isRefreshing = false
-    private let urlString: String = "http://localhost:8080"
+    private let urlString: String = "https://apps.ssayomart.com"
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 10) { // Menambahkan spasi antara elemen
             if showWebView {
                 CustomWebView(url: URL(string: urlString)!, isRefreshing: $isRefreshing)
                     .ignoresSafeArea()
             } else {
-                Image("logo")
-                    .resizable()
-                    .frame(width: 100, height: 100)
+                LogoPreloaderView()
                     .onAppear {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                             showWebView = true
@@ -59,7 +28,7 @@ struct CustomWebView: UIViewControllerRepresentable {
     @Binding var isRefreshing: Bool
 
     func makeUIViewController(context: Context) -> some UIViewController {
-        let webViewController = CustomWebViewController(url: url)
+        let webViewController = CustomWebViewController(url: url, isRefreshing: $isRefreshing)
         return webViewController
     }
 
@@ -68,13 +37,43 @@ struct CustomWebView: UIViewControllerRepresentable {
     }
 }
 
+struct LogoPreloaderView: View {
+    @State private var showLogo = false
+    var body: some View {
+        VStack {
+            if showLogo {
+                Image("logo")
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                    .scaleEffect(1.5) // Efek zoom in
+                    .animation(.easeIn(duration: 0.5))
+                } else {
+                Image("logo")
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                    .scaleEffect(1.5)
+                    .opacity(0) // Logo akan dimulai dengan opacity 0
+                    .onAppear {
+                        withAnimation {
+                            showLogo = true
+                        }
+                    }
+                }
+            ProgressView().padding(.top, 25)
+                .scaleEffect(2.0) // Memperbesar ukuran loading spinner
+        }
+    }
+}
+
 class CustomWebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
     private var url: URL
     private var webView: WKWebView!
     private var refreshControl: UIRefreshControl!
+    @Binding var isRefreshing: Bool
 
-    init(url: URL) {
+    init(url: URL, isRefreshing: Binding<Bool>) {
         self.url = url
+        self._isRefreshing = isRefreshing
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -90,10 +89,11 @@ class CustomWebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
 
     private func setupViews() {
         refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: #selector(refreshWebView), for: .valueChanged)
+
+        refreshControl.addTarget(self, action: #selector(pullToRefresh), for: .valueChanged)
 
         let conf = WKWebViewConfiguration()
-        
+
         // Inisialisasi WKWebView dengan konfigurasi yang telah dibuat
         webView = WKWebView(frame: .zero, configuration: conf)
         webView.scrollView.addSubview(refreshControl)
@@ -108,22 +108,24 @@ class CustomWebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         webView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
     }
 
-    @objc private func refreshWebView() {
+    @objc private func pullToRefresh() {
+        isRefreshing = true
         webView.reload()
     }
 
     private func loadWebView() {
-        var request = URLRequest(url: url)
-        
-        // Menambahkan header User-Agent
-        let userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
-                       
-        webView.customUserAgent = userAgent
+               var request = URLRequest(url: url)
+               
+               // Menambahkan header User-Agent
+               let userAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
+                              
+               webView.customUserAgent = userAgent
 
-        webView.load(request)
+               webView.load(request)
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        isRefreshing = false
         refreshControl.endRefreshing()
     }
 }
