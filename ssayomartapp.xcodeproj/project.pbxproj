@@ -11,6 +11,7 @@
 		877958572A7CD96100407093 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 877958562A7CD96100407093 /* ContentView.swift */; };
 		877958592A7CD96200407093 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 877958582A7CD96200407093 /* Assets.xcassets */; };
 		8779585C2A7CD96200407093 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8779585B2A7CD96200407093 /* Preview Assets.xcassets */; };
+		87CAD6AD2B3E605900A1EF93 /* CoonnectivityHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87CAD6AC2B3E605900A1EF93 /* CoonnectivityHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +21,7 @@
 		877958562A7CD96100407093 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		877958582A7CD96200407093 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8779585B2A7CD96200407093 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		87CAD6AC2B3E605900A1EF93 /* CoonnectivityHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoonnectivityHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +57,7 @@
 				87018E992A8A11F500EC4EFD /* Info.plist */,
 				877958542A7CD96100407093 /* ssayomartappApp.swift */,
 				877958562A7CD96100407093 /* ContentView.swift */,
+				87CAD6AC2B3E605900A1EF93 /* CoonnectivityHelper.swift */,
 				877958582A7CD96200407093 /* Assets.xcassets */,
 				8779585A2A7CD96200407093 /* Preview Content */,
 			);
@@ -141,6 +144,7 @@
 			files = (
 				877958572A7CD96100407093 /* ContentView.swift in Sources */,
 				877958552A7CD96100407093 /* ssayomartappApp.swift in Sources */,
+				87CAD6AD2B3E605900A1EF93 /* CoonnectivityHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

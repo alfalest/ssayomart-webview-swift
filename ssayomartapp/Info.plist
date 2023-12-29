@@ -2,10 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need access to your location to deliver your order</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need access to your gallery if you want to change your profile photo in your app</string>
+    <key>ASAccountAuthenticationModificationSupportsUpgradeToSignInWithApple</key>
+    <true/>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
 </dict>
 </plist>
