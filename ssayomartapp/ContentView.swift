@@ -116,6 +116,7 @@ struct ContentView: View {
         private var refreshControl: UIRefreshControl!
         private var locationManager: CLLocationManager!
         private var imagePicker: UIImagePickerController!
+        private var selectedImage: UIImage?
         @Binding var isRefreshing: Bool
         @Binding var isInternetAvailable: Bool  // Added
         
@@ -232,13 +233,13 @@ struct ContentView: View {
             present(imagePicker, animated: true, completion: nil)
         }
         
-        // UIImagePickerControllerDelegate method untuk menangani pemilihan gambar
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-            if let pickedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-                // Handle gambar yang dipilih di sini, misalnya mengirimnya ke server atau menampilkan di WebView
-            }
-            
-            dismiss(animated: true, completion: nil)
+               if let pickedImage = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
+                   selectedImage = pickedImage
+                   // Handle gambar yang dipilih di sini, misalnya mengirimnya ke server atau menampilkan di WebView
+               }
+
+               dismiss(animated: true, completion: nil)
         }
         
     }
